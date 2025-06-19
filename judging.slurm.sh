@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=llama_traduction         # Job name
-#SBATCH --output=logs/log_llama_1.out          # Name of stdout output file. %x job_name, %j job_number
-#SBATCH --error=logs/error_llama_1.err       # Name of stdout output file. %x job_name, %j job_number
+#SBATCH --job-name=llm_judge                        # Job name
+#SBATCH --output=logs/log_judge_1.out          # Name of stdout output file. %x job_name, %j job_number
+#SBATCH --error=logs/error_judge_1.err         # Name of stdout output file. %x job_name, %j job_number
 
 #SBATCH -A try25_navigli                    # account name
 #SBATCH -p boost_usr_prod              # quality of service
@@ -15,10 +15,11 @@
 # load the modules
 module load profile/deeplrn cuda/12.1
 
+
 # activate your environment
 source ../.env/bin/activate
 
-# load and set the Huggingface CACHE, to retrieve cached informations in a no-internet environment
+
 export HF_HOME=/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub
 export HF_DATASETS_CACHE=/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub
 export HUGGINGFACE_HUB_CACHE=/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub
@@ -28,4 +29,4 @@ export WANDB_MODE=offline # set the wandb offline (no needed for generation...)
 export HF_TOKEN=$(python -c "import huggingface_hub; print(huggingface_hub.HfFolder.get_token() or '')")
 
 # execute the python script
-python llama_traduction.py --input_path "translated_dataset.csv" --output_path "translated_dataset.csv" --n_shot 0
+python judging.py --input_path "translated_dataset.csv" --model_name "Mistral" --translation "0"

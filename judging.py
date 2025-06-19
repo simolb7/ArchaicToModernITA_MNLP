@@ -1,0 +1,208 @@
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import transformers
+import pandas as pd
+import re
+import argparse
+from sklearn.metrics import cohen_kappa_score
+
+def judging_prometheus(path: str, translation: str):
+  transformers.set_seed(42)
+  
+  device = "cuda"
+
+  model_id = "/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub/models--Unbabel--M-Prometheus-7B/snapshots/030fb74806e4228c466a98706a297d43b31ce5df"
+
+  model = AutoModelForCausalLM.from_pretrained(model_id)
+  tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+  ABS_SYSTEM_PROMPT = "You are a fair judge assistant tasked with providing clear, objective feedback based on specific criteria, ensuring each assessment reflects the absolute standards set for performance."
+
+  ABSOLUTE_PROMPT = """###Task Description:
+  An instruction (might include an Input inside it), a response to evaluate, a reference answer that gets a score of 5, and a score rubric representing a evaluation criteria are given.
+  1. Write a detailed feedback that assess the quality of the response strictly based on the given score rubric, not evaluating in general.
+  2. After writing a feedback, write a score that is an integer between 1 and 5. You should refer to the score rubric.
+  3. The output format should look as follows: "Feedback: (write a feedback for criteria) [RESULT] (an integer number between 1 and 5)"
+  4. Please do not generate any other opening, closing, and explanations.
+
+  ###The instruction to evaluate:
+  {instruction}
+
+  ###Response to evaluate:
+  {response}
+
+  ###Score Rubrics:
+  {rubric}
+
+  ###Feedback: """
+
+
+  rubric_data = {
+    "criteria":"Is the model the converts old and archaic italian to Modern Italian",
+    "score1_description":"Fails to convey the meaning: gibberish or irrelevant output",
+    "score2_description":"Significant loss of meaning: Major errors in translation or grammar, Misleading or confusing phrasing",
+    "score3_description":"Some meaning preserved: Modern grammar/vocabulary partly correct, One or more semantic inaccuracies,  Unnatural sentence structure",
+    "score4_description":"Core meaning preserved: Mostly accurate and fluent modernization with minor errors, May sound a bit unnatural but still comprehensible",
+    "score5_description":"Preserves all core ideas and intent: The modernized version is fluent, fully faithful to the original meaning, and idiomatically natural in modern Italian"
+  }
+
+  scores = []
+
+  df = pd.read_csv(path)
+  
+  if translation == "NLLB":
+    colomn_name = "ModernSentence_" + translation
+  elif translation == "Zephyr":
+    colomn_name = "ModernSentence_" + translation
+  else:
+    colomn_name = "ModernSentence_Llama_" + translation + "Shot"
+
+  for idx, row in df.head(20).iterrows():
+
+    user_content = ABS_SYSTEM_PROMPT + "\n\n" + ABSOLUTE_PROMPT.format(
+        instruction=row["Sentence"],
+        response=row[colomn_name],
+        rubric=rubric_data
+    )
+    
+    messages = [
+        {"role": "user", "content": user_content},
+    ]
+
+    encodeds = tokenizer.apply_chat_template(messages, return_tensors="pt")
+
+    model_inputs = encodeds.to(device)
+    model.to(device)
+
+    generated_ids = model.generate(model_inputs, max_new_tokens=1000, do_sample=False)
+    decoded = tokenizer.batch_decode(generated_ids)
+
+    output = decoded[0]
+    print(output)
+    matches = re.findall(r'\b([1-5])\b', output)
+    score = int(matches[-1]) if matches else None
+    scores.append(score)
+
+  return scores
+
+def judging_mistral(path: str, translation: str):
+  transformers.set_seed(42)
+  
+  device = "cuda"
+  
+  model_id = "/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub/models--mistralai--Mistral-7B-Instruct-v0.2/snapshots/3ad372fc79158a2148299e3318516c786aeded6c"
+  
+  model = AutoModelForCausalLM.from_pretrained(model_id)
+  tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+  ABS_SYSTEM_PROMPT = "You are a fair judge assistant tasked with providing clear, objective feedback based on specific criteria, ensuring each assessment reflects the absolute standards set for performance."
+
+  ABSOLUTE_PROMPT = """###Task Description:
+  An instruction (might include an Input inside it), a response to evaluate, a reference answer that gets a score of 5, and a score rubric representing a evaluation criteria are given.
+  1. Write a detailed feedback that assess the quality of the response strictly based on the given score rubric, not evaluating in general.
+  2. After writing a feedback, write a score that is an integer between 1 and 5. You should refer to the score rubric.
+  3. The output format should look as follows: "Feedback: (write a feedback for criteria) [RESULT] (an integer number between 1 and 5)"
+  4. Please do not generate any other opening, closing, and explanations.
+
+  ###The instruction to evaluate:
+  {instruction}
+
+  ###Response to evaluate:
+  {response}
+
+  ###Score Rubrics:
+  {rubric}
+
+  ###Feedback: """
+
+
+  rubric_data = {
+    "criteria":"Is the model the converts old and archaic italian to Modern Italian",
+    "score1_description":"Fails to convey the meaning: gibberish or irrelevant output",
+    "score2_description":"Significant loss of meaning: Major errors in translation or grammar, Misleading or confusing phrasing",
+    "score3_description":"Some meaning preserved: Modern grammar/vocabulary partly correct, One or more semantic inaccuracies,  Unnatural sentence structure",
+    "score4_description":"Core meaning preserved: Mostly accurate and fluent modernization with minor errors, May sound a bit unnatural but still comprehensible",
+    "score5_description":"Preserves all core ideas and intent: The modernized version is fluent, fully faithful to the original meaning, and idiomatically natural in modern Italian"
+  }
+
+  scores = []
+
+  df = pd.read_csv(path)
+  
+  if translation == "NLLB":
+    colomn_name = "ModernSentence_" + translation
+  elif translation == "Zephyr":
+    colomn_name = "ModernSentence_" + translation
+  else:
+    colomn_name = "ModernSentence_Llama_" + translation + "Shot"
+
+  for idx, row in df.head(20).iterrows():
+
+    user_content = ABS_SYSTEM_PROMPT + "\n\n" + ABSOLUTE_PROMPT.format(
+        instruction=row["Sentence"],
+        response=row[colomn_name],
+        rubric=rubric_data
+    )
+    
+    messages = [
+        {"role": "user", "content": user_content},
+    ]
+
+    encodeds = tokenizer.apply_chat_template(messages, return_tensors="pt")
+
+    model_inputs = encodeds.to(device)
+    model.to(device)
+
+    generated_ids = model.generate(model_inputs, max_new_tokens=1000, do_sample=False)
+    decoded = tokenizer.batch_decode(generated_ids)
+
+    output = decoded[0]
+    print(output)
+    matches = re.findall(r'\b([1-5])\b', output)
+    score = int(matches[-1]) if matches else None
+    scores.append(score)
+
+  return scores
+
+def correlation(llm_score: list[int], translation: str):
+  if translation == "Zephyr":
+    zephyr = [4, 2, 1, 2, 2, 1, 2, 2, 3, 2, 2, 2, 3, 1, 1, 1, 3, 2, 2, 1]
+    score = cohen_kappa_score(llm_score, zephyr, weights='quadratic')
+  elif translation == "0":
+    Llama_0Shot = [1, 2, 1, 3, 1, 1, 2, 3, 1, 1, 3, 2, 1, 1, 1, 1, 1, 2, 2, 2]
+    score = cohen_kappa_score(llm_score, Llama_0Shot, weights='quadratic')
+  elif translation == "1":
+    Llama_1Shot = [3, 2, 4, 3, 3, 3, 2, 4, 3, 4, 4, 4, 3, 3, 4, 2, 2, 2, 2, 3]
+    score = cohen_kappa_score(llm_score, Llama_1Shot, weights='quadratic')
+  elif translation == "3":
+    Llama_3Shot = [4, 3, 2, 4, 3, 4, 2, 5, 4, 5, 3, 5, 4, 3, 5, 3, 4, 3, 4, 3]
+    score = cohen_kappa_score(llm_score, Llama_3Shot, weights='quadratic')
+  elif translation == "5":
+    Llama_5Shot = [4, 3, 3, 3, 3, 4, 4, 3, 3, 3, 4, 4, 5, 3, 4, 3, 4, 2, 4, 3]
+    score = cohen_kappa_score(llm_score, Llama_5Shot, weights='quadratic')
+  elif translation == "7":
+    Llama_7Shot = [5, 3, 5, 4, 3, 4, 4, 3, 3, 5, 5, 5, 2, 5, 4, 5, 4, 3, 5, 4]
+    score = cohen_kappa_score(llm_score, Llama_7Shot, weights='quadratic')
+  elif translation == "NLLB":
+    nllb = [2, 3, 4, 2, 2, 2, 1, 2, 3, 1, 3, 4, 4, 2, 2, 3, 3, 1, 2, 2]
+    score = cohen_kappa_score(llm_score, nllb, weights='quadratic')
+  
+  return score
+  
+def main(args):
+  if args.model_name == "Prometheus":
+    llm_score = judging_prometheus(args.input_path, args.translation)
+  else:
+    llm_score = judging_mistral(args.input_path, args.translation)
+  corr = correlation(llm_score, args.translation)
+  print(llm_score)
+  print(corr)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Use Prometheus as an LLM-judge and compute the correlation between human and LLM metrics.")
+    parser.add_argument("--input_path", type=str, required=True, help="Path to the trasnlated dataset.")
+    parser.add_argument("--model_name", type=str, required=True, help="Name of the LLM choose as judge.")
+    parser.add_argument("--translation", type=str, required=True, help="Value to idicate which translation evaluate.")
+    args = parser.parse_args()
+    main(args)
+

@@ -112,7 +112,7 @@ def main(args):
         trad_clean = trad_clean.removeprefix("output: ")
         translated_sentences.append(trad_clean)
         
-    name_colomn = "ModernSentence_" + str(args.n_shot) + "Shot"
+    name_colomn = "ModernSentence_Llama_" + str(args.n_shot) + "Shot"
     df[name_colomn] = translated_sentences
 
     df.to_csv(args.output_path, index=False)
