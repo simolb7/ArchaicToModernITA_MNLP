@@ -3,7 +3,8 @@ import transformers
 import pandas as pd
 import re
 import argparse
-from sklearn.metrics import cohen_kappa_score
+#from sklearn.metrics import cohen_kappa_score
+from scipy.stats import spearmanr
 
 def judging_prometheus(path: str, translation: str):
   transformers.set_seed(42)
@@ -165,37 +166,37 @@ def judging_mistral(path: str, translation: str):
 
 def correlation(llm_score: list[int], translation: str):
   if translation == "Zephyr":
-    zephyr = [4, 2, 1, 2, 2, 1, 2, 2, 3, 2, 2, 2, 3, 1, 1, 1, 3, 2, 2, 1]
-    score = cohen_kappa_score(llm_score, zephyr, weights='quadratic')
+    zephyr = [2, 2, 1, 3, 3, 1, 2, 4, 3, 2, 2, 2, 1, 1, 1, 1, 3, 3, 2, 2]
+    rho, p_value = spearmanr(llm_score, zephyr)
   elif translation == "0":
-    Llama_0Shot = [1, 2, 1, 3, 1, 1, 2, 3, 1, 1, 3, 2, 1, 1, 1, 1, 1, 2, 2, 2]
-    score = cohen_kappa_score(llm_score, Llama_0Shot, weights='quadratic')
+    Llama_0Shot = [1, 1, 1, 3, 1, 1, 2, 3, 1, 1, 2, 2, 1, 2, 1, 1, 2, 2, 2, 2]
+    rho, p_value = spearmanr(llm_score, Llama_0Shot)
   elif translation == "1":
-    Llama_1Shot = [3, 2, 4, 3, 3, 3, 2, 4, 3, 4, 4, 4, 3, 3, 4, 2, 2, 2, 2, 3]
-    score = cohen_kappa_score(llm_score, Llama_1Shot, weights='quadratic')
+    Llama_1Shot = [3, 2, 1, 2, 3, 3, 2, 4, 3, 4, 1, 1, 2, 2, 4, 2, 1, 2, 2, 3]
+    rho, p_value = spearmanr(llm_score, Llama_1Shot)
   elif translation == "3":
-    Llama_3Shot = [4, 3, 2, 4, 3, 4, 2, 5, 4, 5, 3, 5, 4, 3, 5, 3, 4, 3, 4, 3]
-    score = cohen_kappa_score(llm_score, Llama_3Shot, weights='quadratic')
+    Llama_3Shot = [2, 3, 5, 2, 3, 4, 2, 2, 4, 5, 3, 5, 4, 1, 4, 3, 1, 1, 3, 3]
+    rho, p_value = spearmanr(llm_score, Llama_3Shot)
   elif translation == "5":
-    Llama_5Shot = [4, 3, 3, 3, 3, 4, 4, 3, 3, 3, 4, 4, 5, 3, 4, 3, 4, 2, 4, 3]
-    score = cohen_kappa_score(llm_score, Llama_5Shot, weights='quadratic')
+    Llama_5Shot = [4, 4, 2, 3, 3, 4, 4, 3, 3, 1, 4, 3, 5, 2, 3, 3, 2, 2, 4, 3]
+    rho, p_value = spearmanr(llm_score, Llama_5Shot)
   elif translation == "7":
-    Llama_7Shot = [5, 3, 5, 4, 3, 4, 4, 3, 3, 5, 5, 5, 2, 5, 4, 5, 4, 3, 5, 4]
-    score = cohen_kappa_score(llm_score, Llama_7Shot, weights='quadratic')
+    Llama_7Shot = [3, 1, 2, 3, 3, 4, 1, 1, 4, 3, 5, 3, 5, 3, 4, 3, 2, 3, 3, 4]
+    rho, p_value = spearmanr(llm_score, Llama_7Shot)
   elif translation == "NLLB":
-    nllb = [2, 3, 4, 2, 2, 2, 1, 2, 3, 1, 3, 4, 4, 2, 2, 3, 3, 1, 2, 2]
-    score = cohen_kappa_score(llm_score, nllb, weights='quadratic')
-  
-  return score
+    nllb = [2, 1, 2, 2, 2, 2, 1, 3, 1, 1, 3, 4, 3, 2, 2, 3, 5, 1, 2, 2]
+    rho, p_value = spearmanr(llm_score, nllb)
+  return rho, p_value
   
 def main(args):
   if args.model_name == "Prometheus":
     llm_score = judging_prometheus(args.input_path, args.translation)
   else:
     llm_score = judging_mistral(args.input_path, args.translation)
-  corr = correlation(llm_score, args.translation)
+  rho, p_val = correlation(llm_score, args.translation)
   print(llm_score)
-  print(corr)
+  print(rho)
+  print(p_val)
 
 
 if __name__ == "__main__":
