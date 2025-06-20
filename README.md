@@ -28,6 +28,33 @@ export HF_HOME=/leonardo_scratch/large/userexternal/<your_username>/hf_cache/hub
 export HF_DATASETS_CACHE=/leonardo_scratch/large/userexternal/<your_username>/hf_cache/hub
 export HUGGINGFACE_HUB_CACHE=/leonardo_scratch/large/userexternal/<your_username>/hf_cache/hub
 ```
-with the èath tp the folder in $SCRATCH.
+with the èath tp the folder in $SCRATCH. Done that you are ready to run all the code in this repo.
 
 ### Zephyr Translation
+To have the translation done with Zephyr you can run:
+```
+sbatch zephyr_traduction.slurm.sh
+```
+In this .slurm.sh file you can change the last line to specify the path to the input dataset and the path to the output dataset that will have the translated sentences.
+
+### Llama Translation
+To have the translation done with Llama and using In-Contex Learning you can run:
+```
+sbatch llama_traduction.slurm.sh
+```
+In this .slurm.sh file you can change the last line to specify the path to the input dataset and the path to the output dataset that will have the translated sentences, and u can also specify a number between 0 and 7 to set how many senteces will be used in the In-Contex Learning (we used 0, 1, 3, 5, 7).
+
+### NLLB Translation
+To have the translation done with NLLB you can run:
+```
+sbatch nllb_traduction.slurm.sh
+```
+In this .slurm.sh file you can change the last line to specify the path to the input dataset and the path to the output dataset that will have the translated sentences.
+
+### Judging with Prometheus
+To run the LLM-as-a-judge using Prometheus and all have the correlation with the human scoring did by us, you can run:
+```
+sbatch judging.slurm.sh
+```
+In this .slurm.sh file you can change the last line to specify the path to the input dataset, and what translation you want to judge (use "Zephyr", "0", "1", "3", "5", "7" or "NLLB"). You can find the score give by Prometheus and the correlation value in di log file in the logs folder.
+
