@@ -1,6 +1,6 @@
 # ArchaicToModernITA_MNLP
 
-## How to run all the code
+## How to run
 All the code in this repo are meant to be run on Cineca, so first of all let's se how to download locally a model from HuggingFace
 
 ### Download the model
