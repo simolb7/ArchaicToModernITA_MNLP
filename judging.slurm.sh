@@ -29,4 +29,4 @@ export WANDB_MODE=offline # set the wandb offline (no needed for generation...)
 export HF_TOKEN=$(python -c "import huggingface_hub; print(huggingface_hub.HfFolder.get_token() or '')")
 
 # execute the python script
-python judging.py --input_path "translated_dataset.csv" --model_name "Prometheus" --translation "NLLB"
+python judging.py --input_path "translated_dataset.csv" --translation "NLLB"
