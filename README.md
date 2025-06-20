@@ -17,3 +17,4 @@ to set that folder as the one where HuggingFace will download every model. After
 huggingface-cli login
 huggingface-cli download <name_of_the_model_to_download>
 ```
+You can now download all the model that we used for this project: [Zephyr](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)
