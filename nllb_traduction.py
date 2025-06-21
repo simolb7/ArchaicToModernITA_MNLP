@@ -4,6 +4,7 @@ import pandas as pd
 import argparse
 
 def main(args):
+    #define the model and the pipeline
     model_path = "/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub/models--facebook--nllb-200-distilled-1.3B/snapshots/7be3e24664b38ce1cac29b8aeed6911aa0cf0576"
 
     translator = pipeline(
@@ -18,6 +19,7 @@ def main(args):
 
     df = pd.read_csv(args.input_path)
 
+    #for every sentences in the dataset do a translation
     for sentence in df["Sentence"]:
 
         translated = translator(sentence, src_lang="ita_Latn", tgt_lang="ita_Latn") 
@@ -25,6 +27,7 @@ def main(args):
 
     df["ModernSentence_NLLB"] = translated_sentences
 
+    #save the output dataset with the translated sentences
     df.to_csv(args.output_path, index=False)
     
 if __name__ == "__main__":

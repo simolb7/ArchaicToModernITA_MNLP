@@ -79,6 +79,7 @@ def generateMessage(n: int):
 
 
 def main(args):
+    #define the model and the pipeline
     model = "/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub/models--meta-llama--LLama-3.2-3B-Instruct/snapshots/0cb88a4f764b7a12671c53f0838cd831a0843b95"
 
     pipeline = transformers.pipeline(
@@ -92,8 +93,10 @@ def main(args):
 
     df = pd.read_csv(args.input_path)
     
+    #generete the message to send to the model, with a different number of sentences for in-contex learning
     message = generateMessage(args.n_shot)
 
+    #for every sentences to the translation
     for sentece in df["Sentence"]:
         messages = message + [
         {
@@ -107,6 +110,7 @@ def main(args):
             max_new_tokens = 256,
         )
         
+        #clean the output
         trad = outputs[0]["generated_text"][-1]["content"]
         trad_clean = trad.removeprefix("Output: ")
         trad_clean = trad_clean.removeprefix("output: ")
@@ -115,6 +119,7 @@ def main(args):
     name_colomn = "ModernSentence_Llama_" + str(args.n_shot) + "Shot"
     df[name_colomn] = translated_sentences
 
+    #save the dataset with the translated sentences
     df.to_csv(args.output_path, index=False)
     
 

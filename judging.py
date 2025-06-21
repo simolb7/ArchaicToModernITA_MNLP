@@ -8,6 +8,7 @@ from scipy.stats import spearmanr
 def judging_prometheus(path: str, translation: str):
   transformers.set_seed(42)
   
+  #define the model and the prompt
   device = "cuda"
 
   model_id = "/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub/models--Unbabel--M-Prometheus-7B/snapshots/030fb74806e4228c466a98706a297d43b31ce5df"
@@ -49,6 +50,7 @@ def judging_prometheus(path: str, translation: str):
 
   df = pd.read_csv(path)
   
+  #choose on with translation do the scorining
   if translation == "NLLB":
     colomn_name = "ModernSentence_" + translation
   elif translation == "Zephyr":
@@ -56,6 +58,7 @@ def judging_prometheus(path: str, translation: str):
   else:
     colomn_name = "ModernSentence_Llama_" + translation + "Shot"
 
+  #judge the first twenty trunslation
   for idx, row in df.head(20).iterrows():
 
     user_content = ABS_SYSTEM_PROMPT + "\n\n" + ABSOLUTE_PROMPT.format(
@@ -76,6 +79,7 @@ def judging_prometheus(path: str, translation: str):
     generated_ids = model.generate(model_inputs, max_new_tokens=1000, do_sample=False)
     decoded = tokenizer.batch_decode(generated_ids)
 
+    #clean the output to get only the score
     output = decoded[0]
     matches = re.findall(r'\b([1-5])\b', output)
     score = int(matches[-1]) if matches else None
@@ -84,6 +88,7 @@ def judging_prometheus(path: str, translation: str):
   return scores
 
 def correlation(llm_score: list[int], translation: str):
+  #calculate the spearman correlation using human and prometheus score
   if translation == "Zephyr":
     zephyr = [2, 2, 1, 3, 3, 1, 2, 4, 3, 2, 2, 2, 1, 1, 1, 1, 3, 3, 2, 2]
     rho, p_value = spearmanr(llm_score, zephyr)
@@ -108,7 +113,6 @@ def correlation(llm_score: list[int], translation: str):
   return rho, p_value
   
 def main(args):
-  
   llm_score = judging_prometheus(args.input_path, args.translation)
   rho, p_val = correlation(llm_score, args.translation)
   print(llm_score)

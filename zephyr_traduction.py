@@ -5,8 +5,8 @@ import argparse
 
 def main(args):
 
+    #define the model
     model_path = "/leonardo_scratch/large/userexternal/mdimarco/hf_cache/hub/models--HuggingFaceH4--zephyr-7b-beta/snapshots/892b3d7a7b1cf10c7a701c60881cd93df615734c"
-
 
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
 
@@ -21,6 +21,7 @@ def main(args):
 
     translated_sentences = []
 
+    #for every sentences in the dataset we create a messages to do the translation
     for sentence in df["Sentence"]:
         messages = [
             {"role": "system", 
@@ -30,11 +31,9 @@ def main(args):
             {"role": "user",
             "content": sentence},
         ]
-
-        # Applica chat_template per creare l'input tokenizzato
         inputs = tokenizer.apply_chat_template(messages, return_tensors="pt").to(model.device)
 
-        # Genera output
+        #generete de output
         with torch.no_grad():
             output = model.generate(
                 inputs,
@@ -43,27 +42,24 @@ def main(args):
                 temperature=0.7
             )
             
-        # Decodifica l'output
         decoded = tokenizer.decode(output[0], skip_special_tokens=True)
 
-        # Estrai la parte dopo <|assistant|>
+        #eclean the output
         if "<|assistant|>" in decoded:
             translated = decoded.split("<|assistant|>")[-1].strip()
         else:
             translated = decoded.strip()
-
-        # Rimuove eventuali note come "(Formal Register)"
         translated = translated.split("\n")[0].strip()
-
-        # Rimuove anche tag eventuali come "(Modern Italian)"
         unwanted = ["(Modern Italian)", "(Formal Register)", "(Informal Register)"]
         for tag in unwanted:
             translated = translated.replace(tag, "").strip()
         
+        #add the output to the list of translated sentences
         translated_sentences.append(translated)
 
     df["ModernSentence_Zephyr"] = translated_sentences
     
+    #save the output dataset with the translated sentences
     df.to_csv(args.output_path, index=False)
     
 if __name__ == "__main__":
