@@ -56,7 +56,7 @@ def judging_prometheus(path: str, translation: str):
   elif translation == "Zephyr":
     colomn_name = "ModernSentence_" + translation
   elif translation == "FT":
-    colomn_name = "ModernSentece_Llama_" + translation
+    colomn_name = "ModernSentence_Llama_" + translation
   else:
     colomn_name = "ModernSentence_Llama_" + translation + "Shot"
 
@@ -113,7 +113,7 @@ def correlation(llm_score: list[int], translation: str):
     nllb = [2, 1, 2, 2, 2, 2, 1, 3, 1, 1, 3, 4, 3, 2, 2, 3, 5, 1, 2, 2]
     rho, p_value = spearmanr(llm_score, nllb)
   elif translation == "FT":
-    Llama_FT = [2, 2, 2, 2, 2, 2, 2, 3, 2, 4, 3, 3, 2, 2, 4, 2, 3, 1, 1, 2]
+    Llama_FT = [1, 2, 2, 2, 2, 2, 2, 3, 2, 2, 1, 2, 3, 2, 2, 2, 3, 1, 1, 2]
     rho, p_value = spearmanr(llm_score, Llama_FT)
   return rho, p_value
   
