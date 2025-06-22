@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=my_fancy_gen         # Job name
+#SBATCH --job-name=finetuning         # Job name
 #SBATCH --output=logs/log_prova_1.out          # Name of stdout output file. %x job_name, %j job_number
 #SBATCH --error=logs/error_prova_1.err       # Name of stdout output file. %x job_name, %j job_number
 
@@ -17,7 +17,7 @@ module load profile/deeplrn cuda/12.1
 
 
 # activate your environment
-source $SCRATCH/finetune/bin/activate
+source $HOME/cleanEnv/bin/activate
 
 
 export HF_HOME=/leonardo/home/userexternal/mkhan002/.cache/huggingface/hub
@@ -25,12 +25,10 @@ export HF_DATASETS_CACHE=/leonardo/home/userexternal/mkhan002/.cache/huggingface
 export HUGGINGFACE_HUB_CACHE=/leonardo/home/userexternal/mkhan002/.cache/huggingface/hub
 export WANDB_MODE=offline # set the wandb offline (no needed for generation...)
 
-cd /leonardo/home/userexternal/mkhan002/repos/mistral-finetune
-
-torchrun --nproc-per-node 1 -m train model_training.yaml
 
 # # read Huggingface token from .env file
-# export HF_TOKEN=$(python -c "import huggingface_hub; print(huggingface_hub.HfFolder.get_token() or '')")
+export HF_TOKEN=$(python -c "import huggingface_hub; print(huggingface_hub.HfFolder.get_token() or '')")
+
 
 # # execute the python script
-# python my_fancy_generation.py
+python finetuning_llama.py
