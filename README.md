@@ -51,10 +51,21 @@ sbatch nllb_traduction.slurm.sh
 ```
 In this .slurm.sh file you can change the last line to specify the path to the input dataset and the path to the output dataset that will have the translated sentences.
 
+### Fine-Tuning on Llama and Translation
+To run the finetunig on Llama you can simply run:
+```
+sbatch finetuing_llama.slurm.sh
+```
+If you want in the associated .py file you can change the path to save the finetuned model, by default is saved in the current folder. After the fine tuning you can run the translation, using:
+```
+sbatch llama_ft.slurm.sh
+```
+In this .slurm.sh file you can change the last line to specify the path to the input dataset and the path to the output dataset that will have the translated sentences.
+
 ### Judging with Prometheus
 To run the LLM-as-a-judge using Prometheus and all have the correlation with the human scoring did by us, you can run:
 ```
 sbatch judging.slurm.sh
 ```
-In this .slurm.sh file you can change the last line to specify the path to the input dataset, and what translation you want to judge (use "Zephyr", "0", "1", "3", "5", "7" or "NLLB"). You can find the score give by Prometheus and the correlation value in di log file in the logs folder.
+In this .slurm.sh file you can change the last line to specify the path to the input dataset, and what translation you want to judge (use "Zephyr", "0", "1", "3", "5", "7", "NLLB" or "FT). You can find the score give by Prometheus and the correlation value in di log file in the logs folder.
 
